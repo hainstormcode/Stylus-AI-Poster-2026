@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stylus AI Poster</title>
+    <link rel="icon" type="image/png" href="static/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #111113;
+            --card-bg-color: rgba(26, 26, 30, 0.9);
+            --text-color: #e0e0e0;
+            --heading-color: #ffffff;
+            --border-color-1: #38f8eb;
+            --border-color-2: #8d81f8;
+            --border-color-3: #e284fc;
+            --border-color-4: #f4727b;
+            --divider-color: rgba(255, 255, 255, 0.4);
+            --border-radius: 0.8rem;
+            --glow-blur: 15px;
+        }
+
+        @property --angle {
+            syntax: "<angle>";
+            initial-value: 0deg;
+            inherits: false;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        #silk-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            opacity: 0.2;
+        }
+
+        .page-wrapper {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 95%;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .main-title {
+            text-align: center;
+            color: var(--heading-color);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(141, 129, 248, 0.5);
+        }
+        
+        /* Updated authors style for centering */
+        .authors {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            font-size: 1rem;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+        }
+
+        /* Added pseudo-element to balance the layout */
+        .authors::before {
+            content: '(and associates)';
+            visibility: hidden;
+            margin-right: 0.75em;
+        }
+
+        .authors .affiliation {
+            opacity: 0.03;
+            margin-left: 0.75em;
+        }
+
+
+        .artifical {
+            opacity: .8;
+        }
+
+        .poster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-rows: auto;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .grid-col {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        /* Default card for text sections */
+        .card {
+            background-color: var(--card-bg-color);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        /* Wrapper for cards that will have the glow effect */
+        .card-glow-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* The card inside a glow wrapper has slightly different styles */
+        .card-glow-wrapper .card {
+            border: none; /* Border is replaced by the glow */
+        }
+
+        .card-glow-wrapper::before {
+            content: "";
+            position: absolute;
+            inset: -3px;
+            background: conic-gradient(
+                from var(--angle),
+                var(--border-color-1), var(--border-color-2), var(--border-color-3),
+                var(--border-color-4),
+                var(--border-color-3), var(--border-color-2), var(--border-color-1)
+            );
+            border-radius: calc(var(--border-radius) + 3px);
+            z-index: -1;
+            animation: spin 5s linear infinite;
+            filter: blur(var(--glow-blur));
+            opacity: 0.8;
+        }
+
+        .card h2 {
+            color: var(--heading-color);
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color-2);
+            padding-bottom: 0.5rem;
+        }
+        
+        .card h3 {
+            color: var(--heading-color);
+            font-size: 1.1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .card p, .card li {
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+        
+        .card ul {
+            padding-left: 1.2rem;
+            margin-top: 0.5rem;
+        }
+
+        .card-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.6rem;
+            margin-top: 0.8rem;
+        }
+
+        .card-wrapper {
+            position: relative;
+            flex: 1 1 280px;
+            max-width: 380px;
+            display: flex;
+        }
+
+        /* Updated gradient text with new animation */
+        .gradient-text {
+            display: inline-block;
+            background-image: linear-gradient(to right, 
+                var(--border-color-1), var(--border-color-2), var(--border-color-3), 
+                var(--border-color-4), var(--border-color-1)
+            );
+            background-size: 300% 100%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            animation: gradient 8s linear infinite;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.8rem; /* Slightly smaller font for the large table */
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border: 1px solid var(--divider-color); 
+        }
+
+        th {
+            color: var(--heading-color);
+            background-color: var(--bg-color); /* Opaque background to hide scrolling content */
+            position: sticky; /* Make header sticky */
+            top: 0; /* Stick to the top of the scrollable container */
+            z-index: 1; /* Ensure header is above table body */
+        }
+
+        td {
+            color: var(--text-color);
+        }
+        
+        @keyframes spin {
+            0%   { --angle: 0deg; }
+            100% { --angle: 360deg; }
+        }
+
+        /* New keyframes for the gradient text animation */
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .poster-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .poster-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .row {
+            display: flex;
+        }
+
+        .column {
+            flex: 1;
+            padding: 10px;
+        }
+
+        .centered {
+            text-align: center;
+        }
+
+        .spaced {
+            margin-top: 5px;
+        }
+
+        .grayed {
+            color: gray
+        }
+
+    </style>
+</head>
+<body>
+    <canvas id="silk-canvas"></canvas>
+
+    <div class="page-wrapper">
+        
+        <h1 class="main-title">Artificial Intelligence for Stylus Engine</h1>
+        <!-- Updated HTML structure for the authors line -->
+        <p class="authors"><span>Authors: Mark Boudreau, Christian Hains, Quinn Shavey</span><span class="affiliation">(and associates)</span></p>
+
+        <div class="poster-grid">
+
+            <div class="grid-col">
+                <div class="card">
+                    <h2>Abstract</h2>
+                    <p>Stylus Engine is a program created in 2008 by Dr. Douglas Axe to simulate evolution using Chinese characters to represent genomes made up of strokes, that represent amino acids, following a vector-based drawing system based on the 3-letter format of DNA sequences. Strokes are the lines that make up the character. Genomes (complete chinese characters) would go through mutations (vector-altering algorithms), after which being given a score, which would be assigned based on how close it was to the original genome in vector orientation. Originally, the program had to be fed a genome image, as well as the geneome name, after which, it would evaluate the score. Our goal was to create an Artificial Intelligence that would identify a character, in order that we could then evaluate the score of a genome off of only the image, without knowing the genome name.</p>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h2>Stylus Genomes</h2>
+                        <div class="row">
+                            <div class="column">
+                                <img src="static/archetype.png"
+                                    onerror="this.onerror=null;this.src='https://placehold.co/400x250/1a1a1e/ffffff?text=Image+Failed';">
+                                <p class="centered">Original genome (archetype)</p>
+                                <p class="centered spaced grayed">(score 1.0)</p>
+                            </div>
+                            <div class="column">
+                                <img src="static/original.png"
+                                    onerror="this.onerror=null;this.src='https://placehold.co/400x250/1a1a1e/ffffff?text=Image+Failed';">
+                                <p class="centered">Original genome (in vector format)</p>
+                                <p class="centered spaced grayed">(score 0.5553)</p>
+                            </div>
+                            <div class="column">
+                                <img src="static/mutated.png" 
+                                        onerror="this.onerror=null;this.src='https://placehold.co/400x250/1a1a1e/ffffff?text=Image+Failed';">
+                                <p class="centered">Mutated genome</p>
+                                <p class="centered spaced grayed">(score 0.1466)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>Methods</h2>
+                    <p class="spaced">We used a <span class="gradient-text">dual-branch CNN,</span><sup>Dia. 1</sup> (convolutionary neural net), which is known to work well with character recognition projects with a second layer, like stroke recognition, or font. Most models aren't built for a form of analysis like this, which is why dual branch CNN was our choice.</p>
+                    <p style="margin-top: 1rem;">Training an <span class="artifical">AI</span> requires a large amount of data, with which we used a <span class="gradient-text">three-set mutation,</span><sup>Dia. 2</sup> in which we made ~12 million genomes.</p>
+                    <p class="spaced">After generating the genes, we trained our neural network using a Google Colab A100, and we evaluated the final model based off of genomes that it did NOT train with, to make sure that we avoided memorization.</p>
+                </div>
+                
+            </div>
+
+            <div class="grid-col">
+                <div class="card">
+                    <h2>Results</h2>
+                    <p>The final model achieved a high degree of accuracy. Below are the evaluation metrics on the test dataset:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Metric</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Character Accuracy</td>
+                                <td><span class="gradient-text">99.75%</span></td>
+                            </tr>
+                             <tr>
+                                <td>Stroke Accuracy</td>
+                                <td><span class="gradient-text">95.44%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Total Loss</td>
+                                <td>0.1747</td>
+                            </tr>
+                            <tr>
+                                <td>Character Loss</td>
+                                <td>0.0284</td>
+                            </tr>
+                             <tr>
+                                <td>Stroke Loss</td>
+                                <td>0.1465</td>
+                            </tr>
+                             
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- NEW TABLE SECTION -->
+                <div class="card-glow-wrapper">
+                    <div class="card" style="max-height: 800px; overflow-y: auto; display: flex; flex-direction: column;">
+                         <h3>Model Architecture</h3>
+                         <p>Detailed layer-by-layer specification of the dual-branch CNN.</p>
+                         <div id="table-scroll-container" style="flex-grow: 1; overflow-y: auto; margin-top: 1rem;">
+                             <table>
+                                <thead>
+                                    <tr>
+                                        <th>Layer (type)</th>
+                                        <th>Output Shape</th>
+                                        <th>Param #</th>
+                                        <th>Connected to</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>input_layer (InputLayer)</td><td>(None, 128, 128, 1)</td><td>0</td><td>-</td></tr>
+                                    <tr><td>cast_4 (Cast)</td><td>(None, 128, 128, 1)</td><td>0</td><td>input_layer[0][0]</td></tr>
+                                    <tr><td>conv2d (Conv2D)</td><td>(None, 128, 128, 128)</td><td>1,280</td><td>cast_4[0][0]</td></tr>
+                                    <tr><td>batch_normalization (BatchNormalization)</td><td>(None, 128, 128, 128)</td><td>512</td><td>conv2d[0][0]</td></tr>
+                                    <tr><td>max_pooling2d (MaxPooling2D)</td><td>(None, 64, 64, 128)</td><td>0</td><td>batch_normalization[0][0]</td></tr>
+                                    <tr><td>conv2d_1 (Conv2D)</td><td>(None, 64, 64, 256)</td><td>295,168</td><td>max_pooling2d[0][0]</td></tr>
+                                    <tr><td>batch_normalization_1 (BatchNormalization)</td><td>(None, 64, 64, 256)</td><td>1,024</td><td>conv2d_1[0][0]</td></tr>
+                                    <tr><td>leaky_re_lu (LeakyReLU)</td><td>(None, 64, 64, 256)</td><td>0</td><td>batch_normalization_1[0][0]</td></tr>
+                                    <tr><td>max_pooling2d_1 (MaxPooling2D)</td><td>(None, 32, 32, 256)</td><td>0</td><td>leaky_re_lu[0][0]</td></tr>
+                                    <tr><td>dropout (Dropout)</td><td>(None, 32, 32, 256)</td><td>0</td><td>max_pooling2d_1[0][0]</td></tr>
+                                    <tr><td>conv2d_2 (Conv2D)</td><td>(None, 32, 32, 512)</td><td>1,180,160</td><td>dropout[0][0]</td></tr>
+                                    <tr><td>batch_normalization_2 (BatchNormalization)</td><td>(None, 32, 32, 512)</td><td>2,048</td><td>conv2d_2[0][0]</td></tr>
+                                    <tr><td>leaky_re_lu_1 (LeakyReLU)</td><td>(None, 32, 32, 512)</td><td>0</td><td>batch_normalization_2[0][0]</td></tr>
+                                    <tr><td>max_pooling2d_2 (MaxPooling2D)</td><td>(None, 16, 16, 512)</td><td>0</td><td>leaky_re_lu_1[0][0]</td></tr>
+                                    <tr><td>dropout_1 (Dropout)</td><td>(None, 16, 16, 512)</td><td>0</td><td>max_pooling2d_2[0][0]</td></tr>
+                                    <tr><td>conv2d_3 (Conv2D)</td><td>(None, 16, 16, 1024)</td><td>4,719,616</td><td>dropout_1[0][0]</td></tr>
+                                    <tr><td>batch_normalization_3 (BatchNormalization)</td><td>(None, 16, 16, 1024)</td><td>4,096</td><td>conv2d_3[0][0]</td></tr>
+                                    <tr><td>leaky_re_lu_2 (LeakyReLU)</td><td>(None, 16, 16, 1024)</td><td>0</td><td>batch_normalization_3[0][0]</td></tr>
+                                    <tr><td>max_pooling2d_3 (MaxPooling2D)</td><td>(None, 8, 8, 1024)</td><td>0</td><td>leaky_re_lu_2[0][0]</td></tr>
+                                    <tr><td>dropout_2 (Dropout)</td><td>(None, 8, 8, 1024)</td><td>0</td><td>max_pooling2d_3[0][0]</td></tr>
+                                    <tr><td>flatten (Flatten)</td><td>(None, 65536)</td><td>0</td><td>dropout_2[0][0]</td></tr>
+                                    <tr><td>dense (Dense)</td><td>(None, 2048)</td><td>134,219,776</td><td>flatten[0][0]</td></tr>
+                                    <tr><td>dropout_3 (Dropout)</td><td>(None, 2048)</td><td>0</td><td>dense[0][0]</td></tr>
+                                    <tr><td>cast_5 (Cast)</td><td>(None, 2048)</td><td>0</td><td>dropout_3[0][0]</td></tr>
+                                    <tr><td>char_output (Dense)</td><td>(None, 11)</td><td>22,539</td><td>cast_5[0][0]</td></tr>
+                                    <tr><td>cast_6 (Cast)</td><td>(None, 11)</td><td>0</td><td>char_output[0][0]</td></tr>
+                                    <tr><td>broadcast_char_prediction (BroadcastCharPrediction)</td><td>(None, 8, 8, 11)</td><td>0</td><td>dropout_2[0][0]<br>cast_6[0][0]</td></tr>
+                                    <tr><td>concatenate (Concatenate)</td><td>(None, 8, 8, 1035)</td><td>0</td><td>dropout_2[0][0]<br>broadcast_char_prediction[0][0]</td></tr>
+                                    <tr><td>conv2d_4 (Conv2D)</td><td>(None, 8, 8, 256)</td><td>2,384,896</td><td>concatenate[0][0]</td></tr>
+                                    <tr><td>batch_normalization_4 (BatchNormalization)</td><td>(None, 8, 8, 256)</td><td>1,024</td><td>conv2d_4[0][0]</td></tr>
+                                    <tr><td>leaky_re_lu_3 (LeakyReLU)</td><td>(None, 8, 8, 256)</td><td>0</td><td>batch_normalization_4[0][0]</td></tr>
+                                    <tr><td>max_pooling2d_4 (MaxPooling2D)</td><td>(None, 4, 4, 256)</td><td>0</td><td>leaky_re_lu_3[0][0]</td></tr>
+                                    <tr><td>dropout_4 (Dropout)</td><td>(None, 4, 4, 256)</td><td>0</td><td>max_pooling2d_4[0][0]</td></tr>
+                                    <tr><td>conv2d_5 (Conv2D)</td><td>(None, 4, 4, 512)</td><td>1,180,160</td><td>dropout_4[0][0]</td></tr>
+                                    <tr><td>batch_normalization_5 (BatchNormalization)</td><td>(None, 4, 4, 512)</td><td>2,048</td><td>conv2d_5[0][0]</td></tr>
+                                    <tr><td>leaky_re_lu_4 (LeakyReLU)</td><td>(None, 4, 4, 512)</td><td>0</td><td>batch_normalization_5[0][0]</td></tr>
+                                    <tr><td>max_pooling2d_5 (MaxPooling2D)</td><td>(None, 2, 2, 512)</td><td>0</td><td>leaky_re_lu_4[0][0]</td></tr>
+                                    <tr><td>dropout_5 (Dropout)</td><td>(None, 2, 2, 512)</td><td>0</td><td>max_pooling2d_5[0][0]</td></tr>
+                                    <tr><td>conv2d_6 (Conv2D)</td><td>(None, 2, 2, 1024)</td><td>4,719,616</td><td>dropout_5[0][0]</td></tr>
+                                    <tr><td>batch_normalization_6 (BatchNormalization)</td><td>(None, 2, 2, 1024)</td><td>4,096</td><td>conv2d_6[0][0]</td></tr>
+                                    <tr><td>leaky_re_lu_5 (LeakyReLU)</td><td>(None, 2, 2, 1024)</td><td>0</td><td>batch_normalization_6[0][0]</td></tr>
+                                    <tr><td>dropout_6 (Dropout)</td><td>(None, 2, 2, 1024)</td><td>0</td><td>leaky_re_lu_5[0][0]</td></tr>
+                                    <tr><td>flatten_1 (Flatten)</td><td>(None, 4096)</td><td>0</td><td>dropout_6[0][0]</td></tr>
+                                    <tr><td>dense_1 (Dense)</td><td>(None, 2048)</td><td>8,390,656</td><td>flatten_1[0][0]</td></tr>
+                                    <tr><td>dropout_7 (Dropout)</td><td>(None, 2048)</td><td>0</td><td>dense_1[0][0]</td></tr>
+                                    <tr><td>cast_7 (Cast)</td><td>(None, 2048)</td><td>0</td><td>dropout_7[0][0]</td></tr>
+                                    <tr><td>stroke_output (Dense)</td><td>(None, 9)</td><td>18,441</td><td>cast_7[0][0]</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- END NEW TABLE SECTION -->
+
+            </div>
+
+            <div class="grid-col">
+                <div class="card">
+                    <h2>Model Stats</h2>
+                    <p style="margin-top: 1rem;">Total params: <span class="gradient-text">471,426,626</span> (1.76 GB)</p>
+                    <p style="margin-top: 1rem;">Trainable params: <span class="gradient-text">157,139,732</span> (599.44 MB)</p>
+                    <p style="margin-top: 1rem;">Non-trainable params: <span class="gradient-text">7,424</span> (29.00 KB)</p>
+                    <p style="margin-top: 1rem;">Optimizer params: <span class="gradient-text">314,279,470</span> (1.17 GB)</p>
+                </div>
+                 <div class="card">
+                    <h2>Limitations</h2>
+                    <ul>
+                        <li><strong>Time & data:</strong> more time to create more training data would have created a much more successful <span class="artifical">AI.</span></li>
+                        <li><strong>Lower limit:</strong> we limited the score of the characters fed to the <span class="artifical">AI</span> so that if the genomes were too bad, we would not train with them. This makes our <span class="artifical">AI</span> unable to identify lower score characters. Ideally, there should be edge cases for low and high score characters.</li>
+                        <li><strong>Stroke count:</strong> we trained the <span class="artifical">AI</span> to work on specifically 6-stroke genomes, so it can only identify those that have 6 strokes.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h2>Next Steps</h2>
+                    <ul>
+                        <li><strong>Time & data:</strong> We will train our <span class="artifical">AI</span> with more data, to make it even more accurate in the future.</li>
+                        <li><strong>Lower limit:</strong> Ideally, we want to have an <span class="artifical">AI</span> that has enough data with low score genomes to identify the ones that have low scores.</li>
+                        <li><strong>Stroke count:</strong> We will have a master program which counts the strokes in the chinese characters, then routes the task image to the specialized <span class="artifical">AI</span> trained with its corresponding stroke count.</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <div class="card-content">
+                        <h2>Diagrams</h2>
+                        <div class="row">
+                            <div class="column">
+                                <img src="static/cnn_qr.png"
+                                    style="width: 70%; display: block; margin: 0 auto;"
+                                    onerror="this.onerror=null;this.src='https://placehold.co/100x63/1a1a1e/ffffff?text=Image+Failed';">
+                                <p class="centered">CNN Method</p>
+                                <p class="centered spaced grayed">(Scrubs through the image with a 3x3 grid, and figures out the shape)</p>
+                            </div>
+                            <div class="column">
+                                <img src="static/pipe_qr.png" 
+                                        style="width: 70%; display: block; margin: 0 auto;"
+                                        onerror="this.onerror=null;this.src='https://placehold.co/100x63/1a1a1e/ffffff?text=Image+Failed';">
+                                <p class="centered">Training Data Creation</p>
+                                <p class="centered spaced grayed">(First method cuts down size, second method mutates)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // Convert hex to normalized RGB
+        function hexToNormalizedRGB(hex) {
+            hex = hex.replace("#", "");
+            return [
+                parseInt(hex.slice(0, 2), 16) / 255,
+                parseInt(hex.slice(2, 4), 16) / 255,
+                parseInt(hex.slice(4, 6), 16) / 255,
+            ];
+        }
+
+        // Vertex shader
+        const vertexShader = `
+            varying vec2 vUv;
+            varying vec3 vPosition;
+
+            void main() {
+                vPosition = position;
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `;
+
+        // Fragment shader
+        const fragmentShader = `
+            varying vec2 vUv;
+            varying vec3 vPosition;
+
+            uniform float uTime;
+            uniform vec3 uColor;
+            uniform float uSpeed;
+            uniform float uScale;
+            uniform float uRotation;
+            uniform float uNoiseIntensity;
+
+            const float e = 2.71828182845904523536;
+
+            float noise(vec2 texCoord) {
+                float G = e;
+                vec2 r = (G * sin(G * texCoord));
+                return fract(r.x * r.y * (1.0 + texCoord.x));
+            }
+
+            vec2 rotateUvs(vec2 uv, float angle) {
+                float c = cos(angle);
+                float s = sin(angle);
+                mat2 rot = mat2(c, -s, s, c);
+                return rot * uv;
+            }
+
+            void main() {
+                float rnd = noise(gl_FragCoord.xy);
+                vec2 uv = rotateUvs(vUv * uScale, uRotation);
+                vec2 tex = uv * uScale;
+                float tOffset = uSpeed * uTime;
+
+                tex.y += 0.03 * sin(8.0 * tex.x - tOffset);
+
+                float pattern = 0.6 +
+                              0.4 * sin(5.0 * (tex.x + tex.y +
+                                             cos(3.0 * tex.x + 5.0 * tex.y) +
+                                             0.02 * tOffset) +
+                                     sin(20.0 * (tex.x + tex.y - 0.1 * tOffset)));
+
+                vec4 col = vec4(uColor, 1.0) * vec4(pattern) - rnd / 15.0 * uNoiseIntensity;
+                col.a = 1.0;
+                gl_FragColor = col;
+            }
+        `;
+
+        // Initialize Three.js scene
+        function initSilk() {
+            const canvas = document.getElementById('silk-canvas');
+            
+            // Scene setup
+            const scene = new THREE.Scene();
+            const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+            const renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                antialias: true,
+                alpha: true
+            });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Shader uniforms
+            const uniforms = {
+                uTime: { value: 0 },
+                uSpeed: { value: 5 },
+                uScale: { value: 1 },
+                uNoiseIntensity: { value: 2.5 },
+                uColor: {value: new THREE.Color(...hexToNormalizedRGB('#9B8FA1'))},
+                uRotation: { value: 0 }
+            };
+
+            // Create shader material
+            const material = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader
+            });
+
+            // Create plane geometry
+            const geometry = new THREE.PlaneGeometry(2, 2);
+            const mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // Update time uniform
+                uniforms.uTime.value += 0.001;
+                
+                renderer.render(scene, camera);
+            }
+
+            // Handle window resize
+            function handleResize() {
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            window.addEventListener('resize', handleResize);
+            animate();
+        }
+
+        /**
+         * Initializes the auto-scrolling functionality for the model architecture table.
+         * This version uses setInterval to ensure it runs even when the tab is not in focus.
+         */
+        function initTableAutoScroll() {
+            const container = document.getElementById('table-scroll-container');
+            if (!container) {
+                console.error('Table scroll container not found!');
+                return;
+            }
+
+            const scrollStep = 1;      // Pixels to scroll per interval.
+            const intervalTime = 25;   // Milliseconds per interval. Lower is faster/choppier.
+            const pauseAtTop = 2500;   // Milliseconds to pause at the top.
+            const pauseAtBottom = 3000;// Milliseconds to pause at the bottom.
+
+            let scrollIntervalId = null;
+            let isPausedForHover = false;
+            let isPausedAtEnd = false;
+
+            const startScrolling = () => {
+                // Clear any existing interval to prevent duplicates
+                if (scrollIntervalId) {
+                    clearInterval(scrollIntervalId);
+                }
+
+                scrollIntervalId = setInterval(() => {
+                    // Don't scroll if paused by hover or because we are at an end
+                    if (isPausedForHover || isPausedAtEnd) {
+                        return;
+                    }
+
+                    // Check if we've scrolled to the bottom
+                    // A small buffer (-1) is used to ensure it triggers correctly
+                    if (container.scrollTop >= container.scrollHeight - container.clientHeight - 1) {
+                        isPausedAtEnd = true; // Pause the scrolling
+                        
+                        // Set a timeout to reset the scroll after the bottom pause
+                        setTimeout(() => {
+                            container.scrollTo({ top: 0, behavior: 'smooth' });
+                            
+                            // After resetting, wait for the top pause duration before resuming
+                            setTimeout(() => {
+                                isPausedAtEnd = false; // Resume scrolling
+                            }, pauseAtTop);
+
+                        }, pauseAtBottom);
+                    } else {
+                        // If not at the bottom and not paused, scroll down
+                        container.scrollTop += scrollStep;
+                    }
+                }, intervalTime);
+            };
+
+            // Pause scrolling on mouse hover for readability
+            container.addEventListener('mouseenter', () => {
+                isPausedForHover = true;
+            });
+
+            // Resume scrolling when mouse leaves
+            container.addEventListener('mouseleave', () => {
+                isPausedForHover = false;
+            });
+
+            // Start the initial scroll cycle
+            startScrolling();
+        }
+
+
+        // Initialize all scripts when page loads
+        window.addEventListener('load', () => {
+            initSilk();
+            initTableAutoScroll();
+        });
+    </script>
+
+</body>
+</html>
